@@ -3,9 +3,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import argparse, os
 
-######### Converts sequence to matrix with possible base pairs ########
 
-def read_bpseq(file: TextIOWrapper):
+def read_bpseq(file: TextIOWrapper) -> tuple():
     """
     """
 
@@ -31,7 +30,7 @@ def read_bpseq(file: TextIOWrapper):
             pairs.append((int(line[0])-1, int(line[2])-1)) #The files start indexing from 1
     return sequence, pairs
 
-def read_ct(file: TextIOWrapper):
+def read_ct(file: TextIOWrapper) -> tuple():
     """
     """
     sequence = ""
@@ -52,11 +51,13 @@ def read_ct(file: TextIOWrapper):
     for line in lines: 
         sequence += line[1]
         if line[4] != '0': 
-            pairs.append((int(line[0])-1, int(line[4])-1))
+            pairs.append((int(line[0])-1, int(line[4])-1)) #The files start indexing from 1
 
     return sequence, pairs
 
-def make_matrix_from_sequence(sequence):
+def make_matrix_from_sequence(sequence: str) -> np.array:
+    """
+    """
     colors = {"not_paired": [255, 255, 255],
               "unpaired": [64, 64, 64],
               "GC": [0, 255, 0],
@@ -82,7 +83,7 @@ def make_matrix_from_sequence(sequence):
     return matrix
 
 
-def make_matrix_from_basepairs(sequence, pairs): 
+def make_matrix_from_basepairs(sequence: str, pairs: list) -> np.array: 
     """
     """
     black = [0, 0, 0]
@@ -95,27 +96,30 @@ def make_matrix_from_basepairs(sequence, pairs):
 
     return matrix
 
-def make_matrix_from_dotbracket(): 
-    return
 
-def save_matrix(matrix, name): 
+def save_matrix(matrix: np.array, name: str) -> None: 
     plt.imsave(name, matrix)
 
 def main(): 
-    argparser = argparse.ArgumentParser(description = "")
-    argparser.add_argument("-b", "--bpseq", type=argparse.FileType('r'))
-    argparser.add_argument("-c", "--ct", type=argparse.FileType('r'))
-    argparser.add_argument("-o", "--output_dir")
+    argparser = argparse.ArgumentParser(prog = "MatrixConverter",
+                                        description = "Converts .bpseq or .ct files into matrices representing the possible base pairs and the structure.\n\
+                                            If input file is .bpseq use -b/--bpseq.\nIf input file is .ct use -c/--ct.")
+    argparser.add_argument("-b", "--bpseq", type=argparse.FileType('r'), help=".bpseq file")
+    argparser.add_argument("-c", "--ct", type=argparse.FileType('r'), help=".ct file")
+    argparser.add_argument("-o", "--output_dir", help = "Output directory. If not supplied the files are outputted to the current directory")
 
     args = argparser.parse_args()
 
-    if args.bpseq: 
-        sequence, pairs = read_bpseq(args.bpseq)
-        file_name = args.bpseq.name
+    if args.bpseq and args.ct:
+        raise ValueError("Only one input file is allowed")
     
-    if args.ct: 
+    elif args.bpseq: 
+        sequence, pairs = read_bpseq(args.bpseq)
+        file_name = os.path.splitext(os.path.basename(args.bpseq.name))[0]
+    
+    elif args.ct: 
         sequence, pairs = read_ct(args.ct)
-        file_name = args.ct.name
+        file_name = os.path.splitext(os.path.basename(args.ct.name))[0]
     
     bp_matrix = make_matrix_from_sequence(sequence)
     structure_matrix = make_matrix_from_basepairs(sequence, pairs)
