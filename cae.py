@@ -20,15 +20,17 @@ class RNASecondaryStructureCAE(nn.Module):
                 kernel_size=3,
                 padding=1,
             ),
+            nn.BatchNorm2d(num_hidden_channels),
             nn.ReLU(),
             nn.Conv2d(
                 in_channels=num_hidden_channels,
                 out_channels=num_hidden_channels * 2,
                 kernel_size=3,
                 padding=1,
+                # Maybe use dilation in deeper layers?
             ),
             nn.ReLU(),
-            nn.MaxPool2d(kernel_size=2, stride=2),
+            # nn.MaxPool2d(kernel_size=2, stride=2), # Doesn't make sense for our data?
         )
 
         # Decoder
